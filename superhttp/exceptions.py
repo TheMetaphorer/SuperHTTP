@@ -1,0 +1,5 @@
+
+
+
+class InvalidRegexException(Exception):
+    pass
