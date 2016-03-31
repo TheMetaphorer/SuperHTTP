@@ -1,13 +1,14 @@
+from __future__ import absolute_import
 import optparse
 import os
 
-parser = optparse.OptionParser(usage="Usage\n -d: Directory to start project\n -n Name of project")
-parser.add_option("-d", action="store", dest="directory")
-parser.add_option("-n", action="store", dest="name")
+parser = optparse.OptionParser(usage=u"Usage\n -d: Directory to start project\n -n Name of project")
+parser.add_option(u"-d", action=u"store", dest=u"directory")
+parser.add_option(u"-n", action=u"store", dest=u"name")
 
 options, remainder = parser.parse_args()
 
-settings_template = """
+settings_template = u"""
 
 TZ = "UTC"
 
@@ -17,7 +18,7 @@ URLS = []
 
 try:
     os.mkdir(os.path.join(options.directory, options.name))
-except Exception as e:
-    print "Error while creating project: " + str(e)
+except Exception, e:
+    print (u"Error while creating project: " + unicode(e))
 
 

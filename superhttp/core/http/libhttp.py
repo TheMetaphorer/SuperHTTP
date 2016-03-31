@@ -1,56 +1,61 @@
-import BaseHTTPServer
-import urlparse
-import cgi
+# -*- encoding: utf-8 -*-
+
+from __future__ import absolute_import
+import CGIHTTPServer, SimpleHTTPServer, BaseHTTPServer
+from cgi import parse_header, parse_multipart
+from urlparse import parse_qs
+import json
 
 urls = []
 
-class SuperHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class RequestHandlerView(BaseHTTPServer.BaseHTTPRequestHandler):
+    u"""This class is the base RequestHandler view. To create views in an app,
+    subclass this and define your own get and post methods. You can also define
+    a do_DELETE method, a do_PUT method, etc..."""
+    headers = None
+
+    def handle_one_request(self):
+        try:
+           BaseHTTPServer.BaseHTTPRequestHandler.handle_one_request(self)
+           headers = self.parse_HEADERS()
+        except Exception as e:
+            self.do_ERROR(self, e)
+
 
     def do_GET(self):
-        parsed_path = urlparse.urlparse(self.path)
-        message_parts = [
-                'CLIENT VALUES:',
-                'client_address=%s (%s)' % (self.client_address,
-                                            self.address_string()),
-                'command=%s' % self.command,
-                'path=%s' % self.path,
-                'real path=%s' % parsed_path.path,
-                'query=%s' % parsed_path.query,
-                'request_version=%s' % self.request_version,
-                '',
-                'SERVER VALUES:',
-                'server_version=%s' % self.server_version,
-                'sys_version=%s' % self.sys_version,
-                'protocol_version=%s' % self.protocol_version,
-                '',
-                'HEADERS RECEIVED:',
-                ]
-        for name, value in sorted(self.headers.items()):
-            message_parts.append('%s=%s' % (name, value.rstrip()))
-        message_parts.append('')
-        message = '\r\n'.join(message_parts)
         self.send_response(200)
+        self.send_header(u"Content-type", u"text/html")
         self.end_headers()
-        self.wfile.write(message)
-        return
+        self.wfile.write(u"<form action=\"\" method=\"get\"><input type=\"submit\" value=\"fuck\"><input type=\"hidden\" value=\"fuck2\"></form>".encode())
 
+    def parse_HEADERS(self):
+        print self.headers
+        print self.raw_requestline
+        ctype, pdict = parse_header(self.headers.get(u'content-type'))
+        if ctype == u'multipart/form-data':
+            postvars = parse_multipart(self.rfile, pdict)
+        elif ctype == u'application/x-www-form-urlencoded':
+            length = int(self.headers[u'content-length'])
+            postvars = parse_qs(
+                    self.rfile.read(length),
+                    keep_blank_values=1)
+        else:
+            postvars = {}
+        return postvars
 
     def do_POST(self):
-        form = cgi.FieldStorage(
-            fp=self.rfile,
-            headers=self.headers,
-            environ={'REQUEST_METHOD':'POST',
-                     'CONTENT_TYPE':self.headers['Content-Type'],
-                     })
-
-        # Begin the response
         self.send_response(200)
+        self.send_header(u"Content-type", u"text/html")
         self.end_headers()
-        self.wfile.write('Client: %s\n' % str(self.client_address))
-        self.wfile.write('User-agent: %s\n' % str(self.headers['user-agent']))
-        self.wfile.write('Path: %s\n' % self.path)
-        self.wfile.write('Form data:\n')
+        self.wfile.write(u"<form action=\"\" method=\"get\"><input type=\"submit\" value=\"fuck\"><input type=\"hidden\" value=\"fuck2\"></form>".encode())
+
+
+    def do_ERROR(self, exception):
+        self.wfile.write(u"An exception occured:\n ".encode() + unicode(exception).encode())
+
 
 
 class SuperHTTPServer(BaseHTTPServer.HTTPServer):
-    pass
+
+    def serve_forever(self, poll_interval=0.5):
+        BaseHTTPServer.HTTPServer.serve_forever(self, poll_interval=0.5)
